@@ -4,6 +4,8 @@ import { NextRequest, NextResponse } from 'next/server';
 const FORM_ID = '9008422';
 // V3 API key (legacy)
 const API_KEY = process.env.CONVERTKIT_API_KEY || 'yogQOy1FuOv_cjHm3dq1Sg';
+// Tag ID for "Early Adopters" - get this from Kit > Grow > Tags
+const EARLY_ADOPTER_TAG_ID = process.env.CONVERTKIT_TAG_ID || '';
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,6 +13,17 @@ export async function POST(request: NextRequest) {
 
     if (!email) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
+    }
+
+    // Build request body
+    const requestBody: Record<string, unknown> = {
+      api_key: API_KEY,
+      email: email,
+    };
+
+    // Add tag if configured
+    if (EARLY_ADOPTER_TAG_ID) {
+      requestBody.tags = [EARLY_ADOPTER_TAG_ID];
     }
 
     // Use ConvertKit v3 API
@@ -21,10 +34,7 @@ export async function POST(request: NextRequest) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          api_key: API_KEY,
-          email: email,
-        }),
+        body: JSON.stringify(requestBody),
       }
     );
 
