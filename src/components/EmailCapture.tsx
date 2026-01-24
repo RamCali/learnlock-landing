@@ -68,7 +68,7 @@ export default function EmailCapture({ onSubmit }: EmailCaptureProps) {
               <span className="font-bold text-gray-800">LearnLock</span>
             </div>
             <h3 className="text-xl font-bold text-gray-800 mb-2">
-              Be an Early Adopter!
+              Would you like to turn Screen Time into Learning Time? Be an Early Adopter!
             </h3>
             <p className="text-gray-600 text-sm">
               Transform your child&apos;s screen time into learning time.
