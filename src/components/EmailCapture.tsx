@@ -3,8 +3,6 @@
 import { useState } from 'react';
 import Image from 'next/image';
 
-const CONVERTKIT_FORM_ID = '66f5eff770';
-
 interface EmailCaptureProps {
   onSubmit: (email: string) => void;
 }
@@ -29,40 +27,24 @@ export default function EmailCapture({ onSubmit }: EmailCaptureProps) {
     setIsSubmitting(true);
 
     try {
-      // Submit to ConvertKit
-      const response = await fetch(
-        `https://api.convertkit.com/v3/forms/${CONVERTKIT_FORM_ID}/subscribe`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            api_key: process.env.NEXT_PUBLIC_CONVERTKIT_API_KEY,
-            email: email,
-          }),
-        }
-      );
+      // Submit to our API route which handles ConvertKit
+      const response = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
 
       if (!response.ok) {
-        // Fallback: try the form action endpoint
-        const formData = new FormData();
-        formData.append('email_address', email);
-
-        await fetch(
-          `https://app.convertkit.com/forms/${CONVERTKIT_FORM_ID}/subscriptions`,
-          {
-            method: 'POST',
-            body: formData,
-            mode: 'no-cors', // ConvertKit doesn't support CORS for this endpoint
-          }
-        );
+        const data = await response.json();
+        console.error('Subscribe error:', data);
       }
 
       onSubmit(email);
     } catch (err) {
-      console.error('ConvertKit error:', err);
-      // Still proceed even if there's an error (no-cors mode doesn't return response)
+      console.error('Subscribe error:', err);
+      // Still proceed to thank you screen
       onSubmit(email);
     } finally {
       setIsSubmitting(false);
