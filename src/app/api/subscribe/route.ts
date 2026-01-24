@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// ConvertKit form embed ID
-const CONVERTKIT_FORM_ID = '66f5eff770';
+// ConvertKit numeric form ID
+const CONVERTKIT_FORM_ID = '9008422';
+const CONVERTKIT_API_KEY = process.env.CONVERTKIT_API_KEY;
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,40 +12,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
     }
 
-    // Use ConvertKit's form subscribe endpoint
-    const formData = new URLSearchParams();
-    formData.append('email_address', email);
-
+    // Use ConvertKit v3 API with numeric form ID
     const response = await fetch(
-      `https://app.convertkit.com/forms/${CONVERTKIT_FORM_ID}/subscriptions`,
+      `https://api.convertkit.com/v3/forms/${CONVERTKIT_FORM_ID}/subscribe`,
       {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Accept': 'application/json',
+          'Content-Type': 'application/json',
         },
-        body: formData.toString(),
+        body: JSON.stringify({
+          api_key: CONVERTKIT_API_KEY,
+          email: email,
+        }),
       }
     );
 
-    // ConvertKit returns 200 for success, even without JSON
-    if (response.ok) {
-      return NextResponse.json({ success: true });
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error('ConvertKit API error:', data);
+      return NextResponse.json(
+        { error: 'Failed to subscribe', details: data },
+        { status: response.status }
+      );
     }
 
-    // Try to get error details
-    let errorData;
-    try {
-      errorData = await response.json();
-    } catch {
-      errorData = { status: response.status, statusText: response.statusText };
-    }
-
-    console.error('ConvertKit error:', errorData);
-    return NextResponse.json(
-      { error: 'Failed to subscribe', details: errorData },
-      { status: response.status }
-    );
+    return NextResponse.json({ success: true, data });
   } catch (error) {
     console.error('Subscribe error:', error);
     return NextResponse.json(
