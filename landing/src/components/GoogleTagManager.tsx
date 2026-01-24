@@ -3,10 +3,12 @@
 import Script from 'next/script';
 
 const GTM_ID = 'GTM-NV5JJS9Z';
+const GA_ID = 'G-HGNXC5ZGWD';
 
 export function GoogleTagManager() {
   return (
     <>
+      {/* Google Tag Manager */}
       <Script
         id="gtm-script"
         strategy="afterInteractive"
@@ -17,6 +19,23 @@ export function GoogleTagManager() {
             j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
             })(window,document,'script','dataLayer','${GTM_ID}');
+          `,
+        }}
+      />
+      {/* Google Analytics (gtag.js) */}
+      <Script
+        src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+        strategy="afterInteractive"
+      />
+      <Script
+        id="gtag-init"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GA_ID}');
           `,
         }}
       />
