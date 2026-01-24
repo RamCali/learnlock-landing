@@ -6,7 +6,7 @@ import MathQuestion from '@/components/MathQuestion';
 import EmailCapture from '@/components/EmailCapture';
 import ThankYou from '@/components/ThankYou';
 
-type Screen = 'question' | 'email' | 'thankyou' | 'complete';
+type Screen = 'question' | 'unlocking' | 'email' | 'thankyou' | 'complete';
 
 export default function Home() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('question');
@@ -43,7 +43,15 @@ export default function Home() {
 
   const handleCorrectAnswer = (unlockMinutes: number) => {
     setEarnedMinutes(unlockMinutes);
-    setCurrentScreen('email');
+    // Show "unlocking" state - video plays briefly to demonstrate the reward
+    setCurrentScreen('unlocking');
+    setVideoPaused(false); // Resume video to show the reward experience
+
+    // After 1 second, pause again and show email capture
+    setTimeout(() => {
+      setVideoPaused(true);
+      setCurrentScreen('email');
+    }, 1000);
   };
 
   const handleEmailSubmit = (email: string) => {
@@ -156,6 +164,18 @@ export default function Home() {
         <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
           <div className="bg-black/30 backdrop-blur-sm rounded-2xl px-6 py-3 text-center">
             <p className="text-white/90 text-sm font-medium">Video playing...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Unlocking state - brief reward moment */}
+      {currentScreen === 'unlocking' && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-40 animate-slideUp">
+          <div className="bg-green-500 text-white px-6 py-3 rounded-full flex items-center gap-3 shadow-lg">
+            <svg className="w-6 h-6 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+            </svg>
+            <span className="font-semibold text-lg">Unlocking {earnedMinutes} minutes...</span>
           </div>
         </div>
       )}
