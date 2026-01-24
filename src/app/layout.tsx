@@ -17,10 +17,18 @@ export const metadata: Metadata = {
   description: "LearnLock is an educational browser that transforms your child's screen time into learning time with integrated math and vocabulary questions.",
   keywords: ["parental control", "educational app", "screen time", "kids learning", "math questions", "vocabulary"],
   authors: [{ name: "LearnLock" }],
+  icons: {
+    icon: [
+      { url: "/favicon.png", type: "image/png" },
+      { url: "/LearnLock_logo.png", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
   openGraph: {
     title: "LearnLock - Transform Screen Time into Learning Time",
     description: "Turn passive screen time into active learning moments. Kids answer math and vocabulary questions to unlock browsing time.",
     type: "website",
+    images: ["/LearnLock_logo.png"],
   },
 };
 
