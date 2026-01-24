@@ -6,12 +6,12 @@ import MathQuestion from '@/components/MathQuestion';
 import EmailCapture from '@/components/EmailCapture';
 import ThankYou from '@/components/ThankYou';
 
-type Screen = 'start' | 'playing' | 'question' | 'unlocking' | 'email' | 'thankyou' | 'complete';
+type Screen = 'playing' | 'question' | 'unlocking' | 'email' | 'thankyou' | 'complete';
 
 export default function Home() {
-  const [currentScreen, setCurrentScreen] = useState<Screen>('start');
+  const [currentScreen, setCurrentScreen] = useState<Screen>('playing');
   const [earnedMinutes, setEarnedMinutes] = useState(5);
-  const [videoPaused, setVideoPaused] = useState(true);
+  const [videoPaused, setVideoPaused] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // Control video playback
@@ -31,16 +31,14 @@ export default function Home() {
     }
   }, [videoPaused]);
 
-  const handlePlayClick = () => {
-    setCurrentScreen('playing');
-    setVideoPaused(false);
-
-    // After 2 seconds, pause and show math question
-    setTimeout(() => {
+  // Autoplay: show math question after 2 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
       setVideoPaused(true);
       setCurrentScreen('question');
     }, 2000);
-  };
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleCorrectAnswer = (unlockMinutes: number) => {
     setEarnedMinutes(unlockMinutes);
@@ -67,8 +65,13 @@ export default function Home() {
 
   const handleRestart = () => {
     setEarnedMinutes(5);
-    setVideoPaused(true);
-    setCurrentScreen('start');
+    setVideoPaused(false);
+    setCurrentScreen('playing');
+    // After 2 seconds, pause and show math question
+    setTimeout(() => {
+      setVideoPaused(true);
+      setCurrentScreen('question');
+    }, 2000);
   };
 
   return (
@@ -77,7 +80,7 @@ export default function Home() {
       <div className="youtube-container">
         <iframe
           ref={iframeRef}
-          src="https://www.youtube.com/embed/QJI0an6irrA?mute=1&loop=1&controls=0&showinfo=0&rel=0&playlist=QJI0an6irrA&enablejsapi=1"
+          src="https://www.youtube.com/embed/QJI0an6irrA?autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&playlist=QJI0an6irrA&enablejsapi=1"
           title="YouTube video background"
           style={{ border: 'none' }}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -86,8 +89,8 @@ export default function Home() {
         />
         <div className="youtube-overlay" />
 
-        {/* Pause overlay when video is paused (but not on start screen) */}
-        {videoPaused && currentScreen !== 'start' && (
+        {/* Pause overlay when video is paused */}
+        {videoPaused && (
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center pointer-events-none">
             <div className="bg-black/60 rounded-full p-4">
               <svg className="w-16 h-16 text-white/80" fill="currentColor" viewBox="0 0 24 24">
@@ -122,28 +125,6 @@ export default function Home() {
           )}
         </div>
       </header>
-
-      {/* Start Screen - YouTube Play Button */}
-      {currentScreen === 'start' && (
-        <div className="absolute inset-0 z-40 flex items-center justify-center">
-          <button
-            onClick={handlePlayClick}
-            className="group flex flex-col items-center gap-4 transition-transform hover:scale-105"
-          >
-            {/* YouTube-style play button */}
-            <div className="relative">
-              <div className="w-20 h-20 bg-red-600 rounded-2xl flex items-center justify-center shadow-2xl group-hover:bg-red-700 transition-colors">
-                <svg className="w-10 h-10 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-              </div>
-            </div>
-            <div className="bg-black/60 backdrop-blur-sm rounded-xl px-4 py-2">
-              <p className="text-white font-medium">Click to play video</p>
-            </div>
-          </button>
-        </div>
-      )}
 
       {/* Timer Badge - Shows when complete */}
       {currentScreen === 'complete' && (
