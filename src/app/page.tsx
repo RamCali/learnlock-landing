@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import MathQuestion from '@/components/MathQuestion';
 import EmailCapture from '@/components/EmailCapture';
@@ -12,14 +12,34 @@ export default function Home() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('question');
   const [showDemo, setShowDemo] = useState(false);
   const [earnedMinutes, setEarnedMinutes] = useState(5);
+  const [videoPaused, setVideoPaused] = useState(false);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  // Auto-show the question popup after a brief delay
+  // Auto-show the question popup after a brief delay and pause video
   useEffect(() => {
     const timer = setTimeout(() => {
+      setVideoPaused(true);
       setShowDemo(true);
     }, 1500);
     return () => clearTimeout(timer);
   }, []);
+
+  // Control video playback
+  useEffect(() => {
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      if (videoPaused) {
+        iframeRef.current.contentWindow.postMessage(
+          '{"event":"command","func":"pauseVideo","args":""}',
+          '*'
+        );
+      } else {
+        iframeRef.current.contentWindow.postMessage(
+          '{"event":"command","func":"playVideo","args":""}',
+          '*'
+        );
+      }
+    }
+  }, [videoPaused]);
 
   const handleCorrectAnswer = (unlockMinutes: number) => {
     setEarnedMinutes(unlockMinutes);
@@ -33,20 +53,22 @@ export default function Home() {
 
   const handleClose = () => {
     setCurrentScreen('complete');
+    setVideoPaused(false); // Resume video when complete
   };
 
   const handleRestart = () => {
     setEarnedMinutes(5);
+    setVideoPaused(true);
     setCurrentScreen('question');
   };
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-black">
-      {/* YouTube Background - Using a static image placeholder or embedded video */}
+      {/* YouTube Background with API enabled for pause/play control */}
       <div className="youtube-container">
-        {/* YouTube Embed - Using a popular kids video as example */}
         <iframe
-          src="https://www.youtube.com/embed/QJI0an6irrA?autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&playlist=QJI0an6irrA"
+          ref={iframeRef}
+          src="https://www.youtube.com/embed/QJI0an6irrA?autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&playlist=QJI0an6irrA&enablejsapi=1"
           title="YouTube video background"
           style={{ border: 'none' }}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -54,6 +76,17 @@ export default function Home() {
           className="pointer-events-none"
         />
         <div className="youtube-overlay" />
+
+        {/* Pause overlay when video is paused */}
+        {videoPaused && (
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center pointer-events-none">
+            <div className="bg-black/60 rounded-full p-4">
+              <svg className="w-16 h-16 text-white/80" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+              </svg>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Floating Header */}
@@ -120,18 +153,9 @@ export default function Home() {
 
       {/* Pre-popup state - show waiting indicator */}
       {!showDemo && (
-        <div className="absolute inset-0 z-40 flex items-center justify-center">
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl px-8 py-6 text-center">
-            <div className="animate-pulse mb-4">
-              <Image
-                src="/LearnLock_logo.png"
-                alt="LearnLock"
-                width={64}
-                height={64}
-                className="rounded-xl mx-auto"
-              />
-            </div>
-            <p className="text-white font-semibold">Loading demo...</p>
+        <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
+          <div className="bg-black/30 backdrop-blur-sm rounded-2xl px-6 py-3 text-center">
+            <p className="text-white/90 text-sm font-medium">Video playing...</p>
           </div>
         </div>
       )}
