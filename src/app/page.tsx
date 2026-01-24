@@ -47,11 +47,11 @@ export default function Home() {
     setCurrentScreen('unlocking');
     setVideoPaused(false); // Resume video to show the reward experience
 
-    // After 1 second, pause again and show email capture
+    // After 2 seconds, pause again and show email capture
     setTimeout(() => {
       setVideoPaused(true);
       setCurrentScreen('email');
-    }, 1000);
+    }, 2000);
   };
 
   const handleEmailSubmit = (email: string) => {
@@ -138,7 +138,7 @@ export default function Home() {
       )}
 
       {currentScreen === 'email' && (
-        <EmailCapture onSubmit={handleEmailSubmit} earnedMinutes={earnedMinutes} />
+        <EmailCapture onSubmit={handleEmailSubmit} />
       )}
 
       {currentScreen === 'thankyou' && (

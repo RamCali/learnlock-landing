@@ -7,10 +7,9 @@ const CONVERTKIT_FORM_ID = '66f5eff770';
 
 interface EmailCaptureProps {
   onSubmit: (email: string) => void;
-  earnedMinutes?: number;
 }
 
-export default function EmailCapture({ onSubmit, earnedMinutes = 5 }: EmailCaptureProps) {
+export default function EmailCapture({ onSubmit }: EmailCaptureProps) {
   const [email, setEmail] = useState('');
   const [isValid, setIsValid] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -73,26 +72,8 @@ export default function EmailCapture({ onSubmit, earnedMinutes = 5 }: EmailCaptu
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <div className="relative w-full max-w-md mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden animate-slideUp">
-        {/* Success Badge */}
-        <div className="absolute -top-1 left-1/2 -translate-x-1/2 bg-green-500 text-white px-4 py-1 rounded-b-lg text-sm font-semibold">
-          Correct Answer!
-        </div>
-
-        {/* Header */}
-        <div className="bg-gradient-to-r from-green-500 to-emerald-600 px-6 py-8 text-center">
-          <div className="flex justify-center mb-4">
-            <div className="bg-white/20 rounded-full p-3">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-          </div>
-          <h2 className="text-white font-bold text-2xl mb-2">Great Job!</h2>
-          <p className="text-green-100">You&apos;ve unlocked {earnedMinutes} more minutes of screen time</p>
-        </div>
-
         {/* Content */}
-        <div className="p-6">
+        <div className="p-6 pt-8">
           <div className="text-center mb-6">
             <div className="flex items-center justify-center gap-2 mb-3">
               <Image
