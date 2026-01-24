@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LearnLock - Transform Screen Time into Learning Time",
+  title: "LearnLock | Screen Time -> Learning Time",
   description: "LearnLock is an educational browser that transforms your child's screen time into learning time with integrated math and vocabulary questions.",
   keywords: ["parental control", "educational app", "screen time", "kids learning", "math questions", "vocabulary"],
   authors: [{ name: "LearnLock" }],
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     apple: "/apple-touch-icon.png",
   },
   openGraph: {
-    title: "LearnLock - Transform Screen Time into Learning Time",
+    title: "LearnLock | Screen Time -> Learning Time",
     description: "Turn passive screen time into active learning moments. Kids answer math and vocabulary questions to unlock browsing time.",
     type: "website",
     images: ["/LearnLock_logo.png"],
