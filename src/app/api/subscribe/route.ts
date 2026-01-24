@@ -4,8 +4,8 @@ import { NextRequest, NextResponse } from 'next/server';
 const FORM_ID = '9008422';
 // V3 API key (legacy)
 const API_KEY = process.env.CONVERTKIT_API_KEY || 'yogQOy1FuOv_cjHm3dq1Sg';
-// Tag ID for "Early Adopters" - get this from Kit > Grow > Tags
-const EARLY_ADOPTER_TAG_ID = process.env.CONVERTKIT_TAG_ID || '';
+// Tag ID for "Early Adopters"
+const EARLY_ADOPTER_TAG_ID = '14874304';
 
 export async function POST(request: NextRequest) {
   try {
