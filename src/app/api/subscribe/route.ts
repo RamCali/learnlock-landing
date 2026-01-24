@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// ConvertKit numeric form ID
-const CONVERTKIT_FORM_ID = '9008422';
-const CONVERTKIT_API_KEY = process.env.CONVERTKIT_API_KEY;
+// Kit (ConvertKit) form ID
+const KIT_FORM_UID = '66f5eff770';
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,32 +11,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
     }
 
-    // Use ConvertKit v3 API with numeric form ID
+    // Submit to Kit's form endpoint
+    const formData = new URLSearchParams();
+    formData.append('email_address', email);
+
     const response = await fetch(
-      `https://api.convertkit.com/v3/forms/${CONVERTKIT_FORM_ID}/subscribe`,
+      `https://app.kit.com/forms/${KIT_FORM_UID}/subscriptions`,
       {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: JSON.stringify({
-          api_key: CONVERTKIT_API_KEY,
-          email: email,
-        }),
+        body: formData.toString(),
       }
     );
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error('ConvertKit API error:', data);
-      return NextResponse.json(
-        { error: 'Failed to subscribe', details: data },
-        { status: response.status }
-      );
+    if (response.ok || response.status === 302 || response.status === 200) {
+      return NextResponse.json({ success: true });
     }
 
-    return NextResponse.json({ success: true, data });
+    console.error('Kit API error:', response.status, response.statusText);
+    return NextResponse.json(
+      { error: 'Failed to subscribe' },
+      { status: response.status }
+    );
   } catch (error) {
     console.error('Subscribe error:', error);
     return NextResponse.json(
