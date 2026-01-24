@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 
 // Your ConvertKit/Kit numeric form ID
 const FORM_ID = '9008422';
-// Your API key (the one without 'kit_' prefix works with v3 API)
-const API_KEY = process.env.CONVERTKIT_API_KEY || 'kit_2f8229fec62bab9b395d85265efd9ee4';
+// V3 API key (legacy)
+const API_KEY = process.env.CONVERTKIT_API_KEY || 'yogQOy1FuOv_cjHm3dq1Sg';
 
 export async function POST(request: NextRequest) {
   try {
