@@ -15,38 +15,47 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
     }
 
-    // Build request body
-    const requestBody: Record<string, unknown> = {
-      api_key: API_KEY,
-      email: email,
-    };
-
-    // Add tag if configured
-    if (EARLY_ADOPTER_TAG_ID) {
-      requestBody.tags = [EARLY_ADOPTER_TAG_ID];
-    }
-
-    // Use ConvertKit v3 API
-    const response = await fetch(
+    // Step 1: Subscribe to form
+    const formResponse = await fetch(
       `https://api.convertkit.com/v3/forms/${FORM_ID}/subscribe`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify({
+          api_key: API_KEY,
+          email: email,
+        }),
       }
     );
 
-    const responseText = await response.text();
-    console.log(`ConvertKit v3 - Status: ${response.status}, Response: ${responseText.substring(0, 300)}`);
+    const formData = await formResponse.json();
+    console.log(`ConvertKit form subscribe - Status: ${formResponse.status}`);
 
-    if (response.ok) {
+    // Step 2: Add tag to subscriber
+    if (formResponse.ok && EARLY_ADOPTER_TAG_ID) {
+      const tagResponse = await fetch(
+        `https://api.convertkit.com/v3/tags/${EARLY_ADOPTER_TAG_ID}/subscribe`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            api_key: API_KEY,
+            email: email,
+          }),
+        }
+      );
+      console.log(`ConvertKit tag subscribe - Status: ${tagResponse.status}`);
+    }
+
+    if (formResponse.ok) {
       return NextResponse.json({ success: true });
     }
 
-    // Log the error but don't block user
-    console.error('ConvertKit error:', responseText);
+    console.error('ConvertKit error:', formData);
     return NextResponse.json({ success: true, note: 'logged for review' });
   } catch (error) {
     console.error('Subscribe error:', error);
