@@ -11,6 +11,7 @@ type Screen = 'question' | 'email' | 'thankyou' | 'complete';
 export default function Home() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('question');
   const [showDemo, setShowDemo] = useState(false);
+  const [earnedMinutes, setEarnedMinutes] = useState(5);
 
   // Auto-show the question popup after a brief delay
   useEffect(() => {
@@ -20,7 +21,8 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleCorrectAnswer = () => {
+  const handleCorrectAnswer = (unlockMinutes: number) => {
+    setEarnedMinutes(unlockMinutes);
     setCurrentScreen('email');
   };
 
@@ -34,6 +36,7 @@ export default function Home() {
   };
 
   const handleRestart = () => {
+    setEarnedMinutes(5);
     setCurrentScreen('question');
   };
 
@@ -84,7 +87,7 @@ export default function Home() {
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span className="font-semibold">5:00 unlocked</span>
+          <span className="font-semibold">{earnedMinutes}:00 unlocked</span>
         </div>
       )}
 
@@ -94,7 +97,7 @@ export default function Home() {
       )}
 
       {currentScreen === 'email' && (
-        <EmailCapture onSubmit={handleEmailSubmit} />
+        <EmailCapture onSubmit={handleEmailSubmit} earnedMinutes={earnedMinutes} />
       )}
 
       {currentScreen === 'thankyou' && (

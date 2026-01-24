@@ -7,9 +7,10 @@ const CONVERTKIT_FORM_ID = '66f5eff770';
 
 interface EmailCaptureProps {
   onSubmit: (email: string) => void;
+  earnedMinutes?: number;
 }
 
-export default function EmailCapture({ onSubmit }: EmailCaptureProps) {
+export default function EmailCapture({ onSubmit, earnedMinutes = 5 }: EmailCaptureProps) {
   const [email, setEmail] = useState('');
   const [isValid, setIsValid] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -87,7 +88,7 @@ export default function EmailCapture({ onSubmit }: EmailCaptureProps) {
             </div>
           </div>
           <h2 className="text-white font-bold text-2xl mb-2">Great Job!</h2>
-          <p className="text-green-100">You&apos;ve unlocked 5 more minutes of screen time</p>
+          <p className="text-green-100">You&apos;ve unlocked {earnedMinutes} more minutes of screen time</p>
         </div>
 
         {/* Content */}
@@ -149,7 +150,7 @@ export default function EmailCapture({ onSubmit }: EmailCaptureProps) {
                 }}
                 placeholder="Enter your email"
                 disabled={isSubmitting}
-                className={`w-full px-4 py-3 rounded-xl border-2 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                className={`w-full px-4 py-3 rounded-xl border-2 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 placeholder-gray-400 ${
                   isValid && !error
                     ? 'border-gray-200 focus:border-blue-500'
                     : 'border-red-400 bg-red-50'
