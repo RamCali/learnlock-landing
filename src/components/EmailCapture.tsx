@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import Image from 'next/image';
 
+const CONVERTKIT_FORM_ID = '66f5eff770';
+
 interface EmailCaptureProps {
   onSubmit: (email: string) => void;
 }
@@ -10,16 +12,60 @@ interface EmailCaptureProps {
 export default function EmailCapture({ onSubmit }: EmailCaptureProps) {
   const [email, setEmail] = useState('');
   const [isValid, setIsValid] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
 
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (emailRegex.test(email)) {
-      onSubmit(email);
-    } else {
+    if (!emailRegex.test(email)) {
       setIsValid(false);
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Submit to ConvertKit
+      const response = await fetch(
+        `https://api.convertkit.com/v3/forms/${CONVERTKIT_FORM_ID}/subscribe`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            api_key: process.env.NEXT_PUBLIC_CONVERTKIT_API_KEY,
+            email: email,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        // Fallback: try the form action endpoint
+        const formData = new FormData();
+        formData.append('email_address', email);
+
+        await fetch(
+          `https://app.convertkit.com/forms/${CONVERTKIT_FORM_ID}/subscriptions`,
+          {
+            method: 'POST',
+            body: formData,
+            mode: 'no-cors', // ConvertKit doesn't support CORS for this endpoint
+          }
+        );
+      }
+
+      onSubmit(email);
+    } catch (err) {
+      console.error('ConvertKit error:', err);
+      // Still proceed even if there's an error (no-cors mode doesn't return response)
+      onSubmit(email);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -99,23 +145,43 @@ export default function EmailCapture({ onSubmit }: EmailCaptureProps) {
                 onChange={(e) => {
                   setEmail(e.target.value);
                   setIsValid(true);
+                  setError('');
                 }}
                 placeholder="Enter your email"
+                disabled={isSubmitting}
                 className={`w-full px-4 py-3 rounded-xl border-2 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  isValid
+                  isValid && !error
                     ? 'border-gray-200 focus:border-blue-500'
                     : 'border-red-400 bg-red-50'
-                }`}
+                } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
               />
               {!isValid && (
                 <p className="text-red-500 text-sm mt-1">Please enter a valid email</p>
               )}
+              {error && (
+                <p className="text-red-500 text-sm mt-1">{error}</p>
+              )}
             </div>
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-3 px-6 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg"
+              disabled={isSubmitting}
+              className={`w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-3 px-6 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg ${
+                isSubmitting
+                  ? 'opacity-70 cursor-not-allowed'
+                  : 'hover:scale-[1.02] active:scale-[0.98]'
+              }`}
             >
-              Get Early Access
+              {isSubmitting ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Joining...
+                </span>
+              ) : (
+                'Get Early Access'
+              )}
             </button>
           </form>
 
