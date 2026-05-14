@@ -20,12 +20,15 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ email }),
-      redirect: 'follow',
+      // Apps Script Web Apps respond to POST with a 302 to a user-content URL
+      // that serves the response body. doPost has already executed before the
+      // redirect, so a 302 means the write succeeded. We don't need the body.
+      redirect: 'manual',
     });
 
     console.log(`Google Sheets submission - Status: ${response.status}`);
 
-    if (response.ok) {
+    if (response.ok || response.status === 302) {
       return NextResponse.json({ success: true });
     }
 
