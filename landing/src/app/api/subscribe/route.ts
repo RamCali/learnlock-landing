@@ -1,62 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Your ConvertKit/Kit numeric form ID
-const FORM_ID = '9008422';
-// V3 API key (legacy)
-const API_KEY = process.env.CONVERTKIT_API_KEY || 'yogQOy1FuOv_cjHm3dq1Sg';
-// Tag ID for "Early Adopters"
-const EARLY_ADOPTER_TAG_ID = '14874304';
+// Google Apps Script webhook URL for Google Sheets
+// Sheet: "Learn Lock Early Adopters" (under LEAPOUTBUSINESS Google account)
+const GOOGLE_APPS_SCRIPT_URL =
+  process.env.GOOGLE_APPS_SCRIPT_URL ||
+  'https://script.google.com/macros/s/AKfycbyWghRZkEWxDqjDdTlfXB1lN1NeJmd6harA124o1K3PjCC-X_WQHJT7qBtJANYyQLE/exec';
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, firstName } = await request.json();
+    const { email } = await request.json();
 
     if (!email) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
     }
 
-    // Step 1: Subscribe to form
-    const formResponse = await fetch(
-      `https://api.convertkit.com/v3/forms/${FORM_ID}/subscribe`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          api_key: API_KEY,
-          email: email,
-          first_name: firstName || undefined,
-        }),
-      }
-    );
+    const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+      redirect: 'follow',
+    });
 
-    const formData = await formResponse.json();
-    console.log(`ConvertKit form subscribe - Status: ${formResponse.status}`);
+    console.log(`Google Sheets submission - Status: ${response.status}`);
 
-    // Step 2: Add tag to subscriber
-    if (formResponse.ok && EARLY_ADOPTER_TAG_ID) {
-      const tagResponse = await fetch(
-        `https://api.convertkit.com/v3/tags/${EARLY_ADOPTER_TAG_ID}/subscribe`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            api_key: API_KEY,
-            email: email,
-          }),
-        }
-      );
-      console.log(`ConvertKit tag subscribe - Status: ${tagResponse.status}`);
-    }
-
-    if (formResponse.ok) {
+    if (response.ok) {
       return NextResponse.json({ success: true });
     }
 
-    console.error('ConvertKit error:', formData);
+    const text = await response.text().catch(() => '');
+    console.error('Google Sheets error:', response.status, text);
     return NextResponse.json({ success: true, note: 'logged for review' });
   } catch (error) {
     console.error('Subscribe error:', error);
