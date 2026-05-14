@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Your ConvertKit/Kit numeric form ID
-const FORM_ID = '9008422';
-// V4 API key (use Bearer token authentication)
-const API_KEY = process.env.CONVERTKIT_API_KEY;
-// Tag ID for "Early Adopters"
-const EARLY_ADOPTER_TAG_ID = '14874304';
+// Google Apps Script webhook URL for Google Sheets
+// Sheet: "Learn Lock Early Adopters" (under LEAPOUTBUSINESS Google account)
+const GOOGLE_APPS_SCRIPT_URL = process.env.GOOGLE_APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbyWghRZkEWxDqjDdTlfXB1lN1NeJmd6harA124o1K3PjCC-X_WQHJT7qBtJANYyQLE/exec';
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,53 +12,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
     }
 
-    if (!API_KEY) {
-      console.error('CONVERTKIT_API_KEY environment variable is not set');
-      return NextResponse.json({ success: true, note: 'API key not configured' });
-    }
+    // Send email to Google Sheets via Apps Script
+    const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: email,
+      }),
+    });
 
-    // Step 1: Subscribe to form using V4 API with Bearer token
-    const formResponse = await fetch(
-      `https://api.convertkit.com/v4/forms/${FORM_ID}/subscriptions`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${API_KEY}`,
-        },
-        body: JSON.stringify({
-          email: email,
-        }),
-      }
-    );
+    console.log(`Google Sheets submission - Status: ${response.status}`);
 
-    const formData = await formResponse.json();
-    console.log(`ConvertKit form subscribe - Status: ${formResponse.status}`, formData);
-
-    // Step 2: Add tag to subscriber using V4 API
-    if (formResponse.ok && EARLY_ADOPTER_TAG_ID) {
-      const tagResponse = await fetch(
-        `https://api.convertkit.com/v4/tags/${EARLY_ADOPTER_TAG_ID}/subscriptions`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${API_KEY}`,
-          },
-          body: JSON.stringify({
-            email: email,
-          }),
-        }
-      );
-      const tagData = await tagResponse.json();
-      console.log(`ConvertKit tag subscribe - Status: ${tagResponse.status}`, tagData);
-    }
-
-    if (formResponse.ok) {
+    if (response.ok) {
       return NextResponse.json({ success: true });
     }
 
-    console.error('ConvertKit error:', formData);
+    console.error('Google Sheets error:', response.statusText);
     return NextResponse.json({ success: true, note: 'logged for review' });
   } catch (error) {
     console.error('Subscribe error:', error);
